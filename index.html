@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speak Nihongo - Voice-First Japanese Learning Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            color: black;
+            overflow-x: hidden;
+        }
+
+        /* Watercolor Background Effect */
+        .watercolor-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0,0,0,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 60%, rgba(0,0,0,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(0,0,0,0.12) 0%, transparent 50%);
+            filter: blur(40px);
+            animation: watercolorShift 20s ease-in-out infinite;
+        }
+
+        @keyframes watercolorShift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -20px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, black 0%, #1a1a1a 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 4px solid black;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: headerPulse 15s ease-in-out infinite;
+        }
+
+        @keyframes headerPulse {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10%, 10%); }
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Character Selection */
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .character-card {
+            background: white;
+            border: 3px solid black;
+            border-radius: 0;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 40%, rgba(0,0,0,0.05) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 8px 8px 0 black;
+        }
+
+        .character-card:hover::before {
+            opacity: 1;
+        }
+
+        .character-card.active {
+            background: black;
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+
+        .character-avatar {
+            width: 100%;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%);
+            border: 2px solid black;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .character-card.active .character-avatar {
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border-color: white;
+        }
+
+        .character-avatar::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 60% 40%, rgba(0,0,0,0.15) 0%, transparent 50%);
+            filter: blur(20px);
+        }
+
+        .character-expression {
+            font-size: 4rem;
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .character-expression.happy {
+            animation: bounce 0.6s ease;
+        }
+
+        .character-expression.love {
+            animation: heartBeat 1s ease infinite;
+        }
+
+        .character-expression.sad {
+            filter: grayscale(50%);
+            opacity: 0.7;
+        }
+
+        .character-expression.angry {
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .character-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .character-bio {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            background: white;
+            border: 3px solid black;
+            border-radius: 0;
+            margin: 2rem 0;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: black;
+            color: white;
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: 3px solid black;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            background: black;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: white;
+            border: 2px solid black;
+            color: black;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-bubble {
+            background: rgba(0,0,0,0.05);
+            padding: 1rem 1.5rem;
+            border: 2px solid black;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .message.user .message-bubble {
+            background: black;
+            color: white;
+        }
+
+        .message-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-translation {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* Voice Controls */
+        .voice-controls {
+            padding: 2rem;
+            background: rgba(0,0,0,0.02);
+            border-top: 3px solid black;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .voice-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: black;
+            color: white;
+            border: 4px solid black;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .voice-button:active {
+            transform: scale(0.95);
+        }
+
+        .voice-button.recording {
+            animation: pulse 1.5s ease-in-out infinite;
+            background: white;
+            color: black;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.7); }
+            50% { box-shadow: 0 0 0 20px rgba(0,0,0,0); }
+        }
+
+        .voice-status {
+            flex: 1;
+            font-size: 1.1rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: black;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            background: black;
+            color: white;
+            padding: 2rem;
+            border: 3px solid black;
+            margin: 2rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Relationship Meter */
+        .relationship-meter {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: white;
+            border: 3px solid black;
+        }
+
+        .meter-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .meter-bar {
+            height: 40px;
+            background: rgba(0,0,0,0.1);
+            border: 2px solid black;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: black;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .meter-fill.high-relationship {
+            background: linear-gradient(90deg, #000 0%, #333 100%);
+        }
+
+        .meter-fill.low-relationship {
+            background: linear-gradient(90deg, #666 0%, #999 100%);
+        }
+
+        .meter-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .meter-label {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .relationship-milestones {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            gap: 0.5rem;
+        }
+
+        .milestone {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .milestone.unlocked {
+            background: black;
+            color: white;
+            border-color: black;
+            font-weight: 700;
+        }
+
+        .milestone.current {
+            border-color: black;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: black; }
+            50% { border-color: rgba(0,0,0,0.3); }
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.02);
+            border: 2px solid black;
+        }
+
+        .action-button {
+            padding: 1rem;
+            background: white;
+            border: 2px solid black;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .action-button:hover:not(.locked) {
+            background: black;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-button.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .action-button.special {
+            background: black;
+            color: white;
+            border: 3px solid black;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+            50% { box-shadow: 0 0 20px rgba(0,0,0,0.6); }
+        }
+
+        .action-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-label {
+            font-size: 0.85rem;
+        }
+
+        .action-requirement {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-top: 0.25rem;
+        }
+
+        /* Special Event Modal */
+        .event-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .event-content {
+            background: white;
+            border: 4px solid black;
+            padding: 3rem;
+            max-width: 600px;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .event-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: heartBeat 1s ease infinite;
+        }
+
+        .event-title {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .event-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* Warning Banner */
+        .warning-banner {
+            background: black;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin: 1rem 0;
+            border: 3px solid black;
+            animation: warningPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: black;
+            border-radius: 50%;
+            animation: loadingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loadingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Buttons */
+        .button {
+            padding: 1rem 2rem;
+            background: black;
+            color: white;
+            border: 3px solid black;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button:hover {
+            background: white;
+            color: black;
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0 black;
+        }
+
+        .button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 0 black;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none;
+        }
+
+        /* Intro Screen */
+        .intro-screen {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .intro-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        /* Scroll Styles */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: black;
+            border: 2px solid white;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #333;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="watercolor-bg"></div>
+
+    <div class="header">
+        <h1>🗣️ Speak Nihongo</h1>
+        <p>Voice-First Japanese Learning Game</p>
+        <p class="subtitle">Immerse yourself. Speak from day one. Build real relationships.</p>
+    </div>
+
+    <div class="container">
+        <!-- Intro Screen -->
+        <div id="introScreen" class="intro-screen">
+            <h2>Welcome to Digital Japan</h2>
+            <p>Choose a character to start your conversation journey.<br>No textbooks. No flashcards. Just natural conversation.</p>
+            <button class="button" onclick="startGame()">Begin Your Journey</button>
+        </div>
+
+        <!-- Main Game Interface -->
+        <div id="gameInterface" class="hidden">
+            <!-- Stats Panel -->
+            <div class="stats-panel">
+                <div class="stat">
+                    <div class="stat-value" id="wordsSpoken">0</div>
+                    <div class="stat-label">Words Spoken</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="conversationTime">0m</div>
+                    <div class="stat-label">Conversation Time</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="learningStreak">1</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+
+            <!-- Character Selection -->
+            <h2 style="font-size: 2rem; margin: 2rem 0 1rem 0;">Choose Your Conversation Partner</h2>
+            <div class="character-grid">
+                <div class="character-card" onclick="selectCharacter('yuki')">
+                    <div class="character-avatar">
+                        <div class="character-expression" id="yuki-expression">😊</div>
+                    </div>
+                    <div class="character-name">Yuki (ゆき)</div>
+                    <div class="character-bio">
+                        A friendly Tokyo café barista who dreams of traveling the world. She's patient, encouraging, and loves talking about coffee culture and daily life in Shibuya.
+                    </div>
+                </div>
+
+                <div class="character-card" onclick="selectCharacter('kenji')">
+                    <div class="character-avatar">
+                        <div class="character-expression" id="kenji-expression">😎</div>
+                    </div>
+                    <div class="character-name">Kenji (けんじ)</div>
+                    <div class="character-bio">
+                        A young salaryman working in tech. He's direct, practical, and enjoys discussing work culture, video games, and weekend adventures. Slightly sarcastic but warm-hearted.
+                    </div>
+                </div>
+
+                <div class="character-card" onclick="selectCharacter('hana')">
+                    <div class="character-avatar">
+                        <div class="character-expression" id="hana-expression">🥺</div>
+                    </div>
+                    <div class="character-name">Hana (はな)</div>
+                    <div class="character-bio">
+                        An art student with a quirky personality. She speaks poetically, loves discussing anime, museums, and philosophical topics. Can be shy but opens up quickly.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Relationship Meter -->
+            <div class="relationship-meter" id="relationshipMeter" style="display: none;">
+                <div class="meter-title">Relationship with <span id="currentCharacterName"></span></div>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="meterFill" style="width: 30%;"></div>
+                </div>
+                <div class="meter-label">
+                    <span id="relationshipLevel">Acquaintance</span> • <span id="relationshipPercent">30%</span>
+                </div>
+                <div class="relationship-milestones">
+                    <div class="milestone unlocked" data-threshold="0">
+                        <div>👋</div>
+                        <div>Stranger</div>
+                    </div>
+                    <div class="milestone current" data-threshold="30">
+                        <div>🤝</div>
+                        <div>Acquaintance</div>
+                    </div>
+                    <div class="milestone" data-threshold="50">
+                        <div>😊</div>
+                        <div>Friend</div>
+                    </div>
+                    <div class="milestone" data-threshold="70">
+                        <div>💝</div>
+                        <div>Close Friend</div>
+                    </div>
+                    <div class="milestone" data-threshold="90">
+                        <div>❤️</div>
+                        <div>Soulmate</div>
+                    </div>
+                </div>
+                
+                <!-- Unlockable Actions -->
+                <div class="action-buttons" id="actionButtons">
+                    <button class="action-button" onclick="performAction('compliment')" data-required="0">
+                        <span class="action-icon">👍</span>
+                        <span class="action-label">Compliment</span>
+                    </button>
+                    <button class="action-button locked" onclick="performAction('ask-phone')" data-required="50">
+                        <span class="action-icon">📱</span>
+                        <span class="action-label">Ask for Phone</span>
+                        <div class="action-requirement">Requires: Friend (50%)</div>
+                    </button>
+                    <button class="action-button locked" onclick="performAction('hang-out')" data-required="60">
+                        <span class="action-icon">☕</span>
+                        <span class="action-label">Hang Out</span>
+                        <div class="action-requirement">Requires: Friend (60%)</div>
+                    </button>
+                    <button class="action-button locked" onclick="performAction('deep-talk')" data-required="70">
+                        <span class="action-icon">💬</span>
+                        <span class="action-label">Deep Conversation</span>
+                        <div class="action-requirement">Requires: Close Friend (70%)</div>
+                    </button>
+                    <button class="action-button locked special" onclick="performAction('confess')" data-required="85">
+                        <span class="action-icon">💖</span>
+                        <span class="action-label">Confess Love</span>
+                        <div class="action-requirement">Requires: Soulmate (85%)</div>
+                    </button>
+                    <button class="action-button locked" onclick="performAction('gift')" data-required="65">
+                        <span class="action-icon">🎁</span>
+                        <span class="action-label">Give Gift</span>
+                        <div class="action-requirement">Requires: Close Friend (65%)</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Warning for Low Relationship -->
+            <div class="warning-banner" id="warningBanner" style="display: none;">
+                ⚠️ <span id="warningText">Your relationship is deteriorating. Character may become distant.</span> ⚠️
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="chat-container" id="chatContainer" style="display: none;">
+                <div class="chat-header">
+                    <span id="chatTitle">Select a character to begin</span>
+                </div>
+                <div class="messages" id="messages"></div>
+                <div class="voice-controls">
+                    <button class="voice-button" id="voiceButton" onclick="toggleRecording()">
+                        <span id="voiceIcon">🎤</span>
+                    </button>
+                    <div class="voice-status">
+                        <span class="status-indicator"></span>
+                        <span id="statusText">Press to speak in Japanese</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" style="display: none;"></div>
+
+    <script>
+        // Game State
+        const gameState = {
+            currentCharacter: null,
+            conversationHistory: [],
+            relationshipScore: 30,
+            wordsSpoken: 0,
+            conversationStartTime: null,
+            isRecording: false,
+            characterMemories: {
+                yuki: { 
+                    interactions: 0, 
+                    topics: [], 
+                    lastMood: 'friendly',
+                    expression: '😊',
+                    unlockedActions: ['compliment']
+                },
+                kenji: { 
+                    interactions: 0, 
+                    topics: [], 
+                    lastMood: 'neutral',
+                    expression: '😎',
+                    unlockedActions: ['compliment']
+                },
+                hana: { 
+                    interactions: 0, 
+                    topics: [], 
+                    lastMood: 'curious',
+                    expression: '🥺',
+                    unlockedActions: ['compliment']
+                }
+            }
+        };
+
+        // Character Expressions based on relationship
+        const characterExpressions = {
+            yuki: {
+                veryLow: '😢',     // 0-20%
+                low: '😕',         // 21-40%
+                neutral: '😊',     // 41-60%
+                high: '😄',        // 61-80%
+                veryHigh: '🥰',    // 81-100%
+                love: '😍',        // Special events
+                angry: '😠'        // Bad actions
+            },
+            kenji: {
+                veryLow: '😑',
+                low: '🙄',
+                neutral: '😎',
+                high: '😏',
+                veryHigh: '🤗',
+                love: '😘',
+                angry: '😤'
+            },
+            hana: {
+                veryLow: '😭',
+                low: '🥺',
+                neutral: '😊',
+                high: '☺️',
+                veryHigh: '💕',
+                love: '😻',
+                angry: '😖'
+            }
+        };
+
+        // Character Personalities
+        const characters = {
+            yuki: {
+                name: 'Yuki',
+                nameJP: 'ゆき',
+                emoji: '🏙️',
+                personality: 'warm, encouraging, patient, uses casual-polite Japanese',
+                interests: ['coffee', 'travel', 'daily life', 'Shibuya culture'],
+                greetings: [
+                    { jp: 'こんにちは！今日はどう？', en: "Konnichiwa! How's today?" },
+                    { jp: 'おはよう！コーヒー飲む？', en: 'Ohayou! Want some coffee?' },
+                    { jp: 'また会えて嬉しい！', en: 'Happy to see you again!' }
+                ],
+                reactions: {
+                    compliment: { jp: 'えっ...ありがとう！嬉しい！', en: 'Eh... thank you! I\'m happy!', mood: 'happy' },
+                    askPhone: { jp: 'え...電話番号？うーん...もう少し仲良くなってから...', en: 'Eh... phone number? Hmm... maybe after we know each other better...', mood: 'shy' },
+                    askPhoneSuccess: { jp: 'うん！いいよ！連絡してね！', en: 'Sure! That\'s fine! Contact me!', mood: 'happy' },
+                    hangOut: { jp: 'いいね！どこ行く？カフェ？', en: 'Sounds good! Where should we go? Café?', mood: 'excited' },
+                    deepTalk: { jp: '実は...最近色々考えてて...聞いてくれる？', en: 'Actually... I\'ve been thinking about a lot lately... will you listen?', mood: 'vulnerable' },
+                    confess: { jp: '私も...ずっとあなたのこと...好きだった...', en: 'Me too... I\'ve... liked you for a while...', mood: 'love' },
+                    gift: { jp: 'わあ！これ私に？本当にありがとう！', en: 'Wow! This is for me? Thank you so much!', mood: 'grateful' },
+                    lowRelationship: { jp: 'ごめん...今日は疲れてる...', en: 'Sorry... I\'m tired today...', mood: 'distant' }
+                }
+            },
+            kenji: {
+                name: 'Kenji',
+                nameJP: 'けんじ',
+                emoji: '💼',
+                personality: 'direct, practical, slightly sarcastic but friendly, uses casual Japanese',
+                interests: ['tech', 'video games', 'work culture', 'weekend plans'],
+                greetings: [
+                    { jp: 'よ！元気？', en: "Yo! How's it going?" },
+                    { jp: '仕事終わった？', en: 'Done with work?' },
+                    { jp: 'また来たね。暇なの？', en: 'You came again. Bored?' }
+                ],
+                reactions: {
+                    compliment: { jp: 'へえ、まあな。悪い気はしないよ。', en: 'Heh, well yeah. Doesn\'t feel bad.', mood: 'pleased' },
+                    askPhone: { jp: 'は？まだ早いだろ。もっと話してから。', en: 'Huh? Too early. Talk more first.', mood: 'defensive' },
+                    askPhoneSuccess: { jp: 'まあ、いいか。LINEでいい？', en: 'Well, okay. LINE okay?', mood: 'casual' },
+                    hangOut: { jp: 'おう、いいぜ。ゲーセンとか行く？', en: 'Yeah, sure. Wanna hit the arcade?', mood: 'friendly' },
+                    deepTalk: { jp: '...本当は、仕事辞めたいんだよな...', en: '...honestly, I want to quit my job...', mood: 'serious' },
+                    confess: { jp: 'マジで？...俺も、なんか...お前といると楽しいし...', en: 'For real? ...me too, somehow... it\'s fun being with you...', mood: 'awkward_love' },
+                    gift: { jp: 'おお、サンキュ。センスいいじゃん。', en: 'Oh, thanks. Good taste.', mood: 'impressed' },
+                    lowRelationship: { jp: '悪いけど、今忙しいんだわ。', en: 'Sorry but I\'m busy right now.', mood: 'cold' }
+                }
+            },
+            hana: {
+                name: 'Hana',
+                nameJP: 'はな',
+                emoji: '🎨',
+                personality: 'poetic, thoughtful, shy but passionate, uses soft polite Japanese',
+                interests: ['art', 'anime', 'philosophy', 'museums'],
+                greetings: [
+                    { jp: 'あ...こんにちは...', en: 'Ah... hello...' },
+                    { jp: '今日も素敵な日だね...', en: "Today is lovely too..." },
+                    { jp: 'また話せるの、嬉しい...', en: "I'm happy we can talk again..." }
+                ],
+                reactions: {
+                    compliment: { jp: 'え...そんな...恥ずかしい...でも、ありがとう...', en: 'Eh... such... embarrassing... but, thank you...', mood: 'shy_happy' },
+                    askPhone: { jp: 'え...あの...まだ...ちょっと...', en: 'Eh... um... not yet... a little...', mood: 'nervous' },
+                    askPhoneSuccess: { jp: 'うん...いいよ...でも、優しくしてね...', en: 'Yes... okay... but, be gentle with me...', mood: 'trusting' },
+                    hangOut: { jp: '美術館...一緒に行ってくれる？', en: 'The museum... will you go together with me?', mood: 'hopeful' },
+                    deepTalk: { jp: '実は...私、いつも孤独で...でもあなたは...違う気がする...', en: 'Actually... I\'m always lonely... but you... feel different...', mood: 'vulnerable' },
+                    confess: { jp: 'ずっと...ずっと待ってた...この言葉を...愛してる...', en: 'For so long... I\'ve been waiting... for these words... I love you...', mood: 'overwhelmed_love' },
+                    gift: { jp: 'これ...私のために？泣きそう...本当に嬉しい...', en: 'This... for me? I could cry... I\'m really happy...', mood: 'tearful_joy' },
+                    lowRelationship: { jp: '...もう、話したくない...', en: '...I don\'t want to talk anymore...', mood: 'hurt' }
+                }
+            }
+        };
+
+        // Start Game
+        function startGame() {
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('gameInterface').classList.remove('hidden');
+            gameState.conversationStartTime = Date.now();
+            updateTimer();
+        }
+
+        // Select Character
+        function selectCharacter(characterId) {
+            // Update UI
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            gameState.currentCharacter = characterId;
+            const character = characters[characterId];
+
+            // Show chat interface
+            document.getElementById('chatContainer').style.display = 'flex';
+            document.getElementById('relationshipMeter').style.display = 'block';
+            document.getElementById('chatTitle').textContent = `Conversation with ${character.name} (${character.nameJP})`;
+            document.getElementById('currentCharacterName').textContent = character.name;
+
+            // Clear previous messages
+            document.getElementById('messages').innerHTML = '';
+            gameState.conversationHistory = [];
+
+            // Reset relationship for new character (or load saved)
+            gameState.relationshipScore = 30;
+            updateRelationship(0); // Just to update UI
+
+            // Add greeting
+            const greeting = character.greetings[Math.floor(Math.random() * character.greetings.length)];
+            addMessage('character', greeting.jp, greeting.en, getCharacterExpressionEmoji());
+
+            // Update character memory
+            gameState.characterMemories[characterId].interactions++;
+
+            // Initialize expression
+            updateCharacterExpression();
+        }
+
+        // Add Message
+        function addMessage(sender, text, translation, emoji) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatarEmoji = sender === 'user' ? '👤' : emoji;
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatarEmoji}</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="message-text">${text}</div>
+                        ${translation ? `<div class="message-translation">${translation}</div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Store in history
+            gameState.conversationHistory.push({ sender, text, translation });
+        }
+
+        // Toggle Recording
+        function toggleRecording() {
+            if (!gameState.currentCharacter) {
+                alert('Please select a character first!');
+                return;
+            }
+
+            const button = document.getElementById('voiceButton');
+            const icon = document.getElementById('voiceIcon');
+            const statusText = document.getElementById('statusText');
+
+            if (!gameState.isRecording) {
+                // Start recording
+                gameState.isRecording = true;
+                button.classList.add('recording');
+                icon.textContent = '⏹️';
+                statusText.innerHTML = '<span class="loading"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span> Listening...';
+
+                // Simulate recording for 2 seconds
+                setTimeout(() => {
+                    processVoiceInput();
+                }, 2000);
+            } else {
+                // Stop recording
+                processVoiceInput();
+            }
+        }
+
+        // Process Voice Input (Simulated)
+        function processVoiceInput() {
+            const button = document.getElementById('voiceButton');
+            const icon = document.getElementById('voiceIcon');
+            const statusText = document.getElementById('statusText');
+
+            gameState.isRecording = false;
+            button.classList.remove('recording');
+            icon.textContent = '🎤';
+            statusText.innerHTML = '<span class="loading"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span> Processing...';
+
+            // Simulate user input
+            setTimeout(() => {
+                const userInputs = [
+                    { jp: 'おはよう！元気ですか？', en: 'Ohayou! How are you?' },
+                    { jp: '今日はいい天気ですね', en: "The weather is nice today" },
+                    { jp: 'コーヒーが好きです', en: 'I like coffee' },
+                    { jp: '日本語を勉強しています', en: "I'm studying Japanese" },
+                    { jp: 'ありがとうございます！', en: 'Thank you!' }
+                ];
+
+                const userInput = userInputs[Math.floor(Math.random() * userInputs.length)];
+                addMessage('user', userInput.jp, userInput.en);
+
+                // Update stats
+                gameState.wordsSpoken += userInput.jp.length;
+                document.getElementById('wordsSpoken').textContent = gameState.wordsSpoken;
+
+                // Generate AI response
+                generateAIResponse(userInput.jp);
+            }, 1500);
+        }
+
+        // Generate AI Response (Simulated)
+        async function generateAIResponse(userInput) {
+            const statusText = document.getElementById('statusText');
+            statusText.innerHTML = '<span class="loading"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span> Thinking...';
+
+            const character = characters[gameState.currentCharacter];
+            const memory = gameState.characterMemories[gameState.currentCharacter];
+
+            // Simulate AI thinking
+            setTimeout(() => {
+                let response;
+
+                // Check relationship level for response quality
+                if (gameState.relationshipScore <= 20) {
+                    // Very low relationship - character refuses to engage
+                    response = character.reactions.lowRelationship;
+                    addMessage('character', response.jp, response.en, characterExpressions[gameState.currentCharacter].veryLow);
+                    updateRelationship(-2); // Continues to deteriorate
+                    
+                    // Update expression to sad/angry
+                    const expressionEl = document.getElementById(`${gameState.currentCharacter}-expression`);
+                    if (expressionEl) {
+                        expressionEl.textContent = characterExpressions[gameState.currentCharacter].angry;
+                        expressionEl.classList.add('angry');
+                    }
+                    
+                    statusText.textContent = 'Press to speak in Japanese';
+                    return;
+                }
+
+                // Context-aware responses based on character personality and relationship
+                const responses = {
+                    yuki: [
+                        { jp: 'そうですね！今日は本当にいい日ですね。コーヒーでも飲みましょうか？', en: "That's right! It's really a nice day. Shall we have some coffee?" },
+                        { jp: 'へえ、日本語を勉強しているんですね！すごい！どのくらい勉強していますか？', en: "Wow, you're studying Japanese! Amazing! How long have you been studying?" },
+                        { jp: 'ありがとう！あなたと話すのは楽しいです。また来てくださいね！', en: "Thank you! I enjoy talking with you. Please come again!" },
+                        { jp: '最近、新しいコーヒー豆を試してるの。今度飲んでみる？', en: "I've been trying new coffee beans lately. Want to try them next time?" }
+                    ],
+                    kenji: [
+                        { jp: 'まあまあだよ。仕事で疲れたけど。君は？', en: "So-so. Tired from work though. How about you?" },
+                        { jp: 'へえ、日本語やってんだ。難しいだろ？でも頑張ってるね。', en: "Oh, you're doing Japanese? Must be tough, right? But you're trying hard." },
+                        { jp: 'おう、こっちこそ。また暇だったら来いよ。', en: "Yeah, likewise. Come by again if you're bored." },
+                        { jp: '週末、新しいゲーム買ったんだ。一緒にやる？', en: "I bought a new game this weekend. Wanna play together?" }
+                    ],
+                    hana: [
+                        { jp: 'うん...本当に...空が綺麗ですね...絵を描きたくなります...', en: "Yes... really... the sky is beautiful... makes me want to paint..." },
+                        { jp: '日本語...素敵ですよね...言葉って...心を表すから...', en: "Japanese... it's wonderful... words... express the heart..." },
+                        { jp: 'あ...ありがとう...あなたと話すと...心が温かくなります...', en: "Ah... thank you... when I talk with you... my heart feels warm..." },
+                        { jp: '最近...新しい展覧会を見つけたの...一緒に...行きたいな...', en: "Recently... I found a new exhibition... I want to... go together..." }
+                    ]
+                };
+
+                // Add high-relationship exclusive responses
+                if (gameState.relationshipScore >= 70) {
+                    responses.yuki.push(
+                        { jp: 'あなたといると...特別な気持ちになる...', en: 'When I\'m with you... I feel special...' }
+                    );
+                    responses.kenji.push(
+                        { jp: 'お前といる時が...一番リラックスできるんだよな...', en: 'When I\'m with you... I can relax the most...' }
+                    );
+                    responses.hana.push(
+                        { jp: 'あなたは...私の世界に色を与えてくれる...', en: 'You... give color to my world...' }
+                    );
+                }
+
+                const characterResponses = responses[gameState.currentCharacter];
+                response = characterResponses[Math.floor(Math.random() * characterResponses.length)];
+
+                addMessage('character', response.jp, response.en, getCharacterExpressionEmoji());
+
+                // Update relationship based on conversation quality
+                let relationshipChange = 3; // Base increase
+                
+                // Bonus for longer conversations
+                if (gameState.conversationHistory.length > 5) {
+                    relationshipChange += 2;
+                }
+                
+                // Penalty for low relationship
+                if (gameState.relationshipScore < 40) {
+                    relationshipChange = Math.floor(relationshipChange * 0.7);
+                }
+
+                updateRelationship(relationshipChange);
+
+                statusText.textContent = 'Press to speak in Japanese';
+            }, 2000);
+        }
+
+        // Update Relationship
+        function updateRelationship(change) {
+            const oldScore = gameState.relationshipScore;
+            gameState.relationshipScore = Math.min(100, Math.max(0, gameState.relationshipScore + change));
+            
+            const meterFill = document.getElementById('meterFill');
+            const relationshipLevel = document.getElementById('relationshipLevel');
+            const relationshipPercent = document.getElementById('relationshipPercent');
+            const warningBanner = document.getElementById('warningBanner');
+
+            // Animate meter fill
+            meterFill.style.width = gameState.relationshipScore + '%';
+            relationshipPercent.textContent = gameState.relationshipScore + '%';
+
+            // Update meter color
+            meterFill.classList.remove('high-relationship', 'low-relationship');
+            if (gameState.relationshipScore >= 70) {
+                meterFill.classList.add('high-relationship');
+            } else if (gameState.relationshipScore <= 30) {
+                meterFill.classList.add('low-relationship');
+            }
+
+            // Show warning for low relationship
+            if (gameState.relationshipScore <= 25) {
+                warningBanner.style.display = 'block';
+                document.getElementById('warningText').textContent = 
+                    'Your relationship is very low. Character may refuse to interact.';
+            } else if (gameState.relationshipScore <= 40) {
+                warningBanner.style.display = 'block';
+                document.getElementById('warningText').textContent = 
+                    'Your relationship is deteriorating. Be more considerate in conversations.';
+            } else {
+                warningBanner.style.display = 'none';
+            }
+
+            // Update level text
+            if (gameState.relationshipScore >= 90) {
+                relationshipLevel.textContent = 'Soulmate';
+            } else if (gameState.relationshipScore >= 70) {
+                relationshipLevel.textContent = 'Close Friend';
+            } else if (gameState.relationshipScore >= 50) {
+                relationshipLevel.textContent = 'Friend';
+            } else if (gameState.relationshipScore >= 30) {
+                relationshipLevel.textContent = 'Acquaintance';
+            } else {
+                relationshipLevel.textContent = 'Distant';
+            }
+
+            // Update milestones
+            updateMilestones();
+
+            // Update character expression
+            updateCharacterExpression();
+
+            // Unlock actions based on relationship
+            updateUnlockedActions();
+
+            // Check for milestone events
+            checkMilestoneEvents(oldScore, gameState.relationshipScore);
+        }
+
+        // Update Milestones
+        function updateMilestones() {
+            document.querySelectorAll('.milestone').forEach(milestone => {
+                const threshold = parseInt(milestone.getAttribute('data-threshold'));
+                milestone.classList.remove('unlocked', 'current');
+                
+                if (gameState.relationshipScore >= threshold) {
+                    milestone.classList.add('unlocked');
+                } else if (gameState.relationshipScore >= threshold - 20 && gameState.relationshipScore < threshold) {
+                    milestone.classList.add('current');
+                }
+            });
+        }
+
+        // Update Character Expression
+        function updateCharacterExpression() {
+            if (!gameState.currentCharacter) return;
+
+            const character = gameState.currentCharacter;
+            const score = gameState.relationshipScore;
+            const expressions = characterExpressions[character];
+            
+            let newExpression;
+            if (score <= 20) newExpression = expressions.veryLow;
+            else if (score <= 40) newExpression = expressions.low;
+            else if (score <= 60) newExpression = expressions.neutral;
+            else if (score <= 80) newExpression = expressions.high;
+            else newExpression = expressions.veryHigh;
+
+            const expressionEl = document.getElementById(`${character}-expression`);
+            if (expressionEl) {
+                expressionEl.textContent = newExpression;
+                gameState.characterMemories[character].expression = newExpression;
+                
+                // Add animation class
+                expressionEl.classList.remove('happy', 'sad', 'love', 'angry');
+                if (score >= 70) {
+                    expressionEl.classList.add('happy');
+                } else if (score <= 30) {
+                    expressionEl.classList.add('sad');
+                }
+            }
+        }
+
+        // Update Unlocked Actions
+        function updateUnlockedActions() {
+            if (!gameState.currentCharacter) return;
+
+            document.querySelectorAll('.action-button').forEach(button => {
+                const required = parseInt(button.getAttribute('data-required'));
+                
+                if (gameState.relationshipScore >= required) {
+                    button.classList.remove('locked');
+                } else {
+                    button.classList.add('locked');
+                }
+            });
+        }
+
+        // Perform Action
+        function performAction(action) {
+            if (!gameState.currentCharacter) {
+                alert('Please select a character first!');
+                return;
+            }
+
+            const character = characters[gameState.currentCharacter];
+            const reaction = character.reactions[action];
+
+            // Check if action is unlocked
+            const actionButton = document.querySelector(`.action-button[onclick*="${action}"]`);
+            if (actionButton && actionButton.classList.contains('locked')) {
+                alert('This action is locked! Improve your relationship first.');
+                return;
+            }
+
+            // Special handling for phone number
+            if (action === 'ask-phone') {
+                if (gameState.relationshipScore >= 50) {
+                    const successReaction = character.reactions.askPhoneSuccess;
+                    addMessage('user', '電話番号を教えてくれる？', 'Can you give me your phone number?');
+                    setTimeout(() => {
+                        addMessage('character', successReaction.jp, successReaction.en, getCharacterExpressionEmoji());
+                        updateRelationship(8);
+                    }, 1500);
+                } else {
+                    addMessage('user', '電話番号を教えてくれる？', 'Can you give me your phone number?');
+                    setTimeout(() => {
+                        addMessage('character', reaction.jp, reaction.en, getCharacterExpressionEmoji());
+                        updateRelationship(-5);
+                    }, 1500);
+                }
+                return;
+            }
+
+            // Special handling for confession
+            if (action === 'confess') {
+                if (gameState.relationshipScore >= 85) {
+                    showConfessionEvent();
+                    return;
+                } else {
+                    alert('Your relationship isn\'t strong enough yet. Build more trust first!');
+                    return;
+                }
+            }
+
+            // Regular actions
+            if (reaction) {
+                let userText = '';
+                switch(action) {
+                    case 'compliment':
+                        userText = { jp: 'あなたは本当に素敵です', en: 'You are really wonderful' };
+                        break;
+                    case 'hang-out':
+                        userText = { jp: '今度一緒に遊びに行かない？', en: "Want to hang out together sometime?" };
+                        break;
+                    case 'deep-talk':
+                        userText = { jp: '最近何か悩みある？', en: 'Do you have any worries lately?' };
+                        break;
+                    case 'gift':
+                        userText = { jp: 'これ、あなたにプレゼント', en: 'This is a present for you' };
+                        break;
+                }
+
+                if (userText) {
+                    addMessage('user', userText.jp, userText.en);
+                    setTimeout(() => {
+                        addMessage('character', reaction.jp, reaction.en, getCharacterExpressionEmoji());
+                        
+                        // Update relationship based on action
+                        let relationshipChange = 0;
+                        switch(action) {
+                            case 'compliment': relationshipChange = 5; break;
+                            case 'hang-out': relationshipChange = 10; break;
+                            case 'deep-talk': relationshipChange = 12; break;
+                            case 'gift': relationshipChange = 8; break;
+                        }
+                        
+                        updateRelationship(relationshipChange);
+                    }, 1500);
+                }
+            }
+        }
+
+        // Get Current Character Expression Emoji
+        function getCharacterExpressionEmoji() {
+            if (!gameState.currentCharacter) return '😊';
+            return gameState.characterMemories[gameState.currentCharacter].expression;
+        }
+
+        // Show Confession Event
+        function showConfessionEvent() {
+            const character = characters[gameState.currentCharacter];
+            const reaction = character.reactions.confess;
+
+            addMessage('user', '愛してる...', 'I love you...');
+
+            setTimeout(() => {
+                const modal = document.getElementById('eventModal');
+                modal.style.display = 'flex';
+                modal.className = 'event-modal';
+                
+                modal.innerHTML = `
+                    <div class="event-content">
+                        <div class="event-icon">💕</div>
+                        <div class="event-title">Confession Accepted!</div>
+                        <div class="event-message">
+                            <p style="font-size: 1.3rem; margin-bottom: 1rem;"><strong>${reaction.jp}</strong></p>
+                            <p style="opacity: 0.8;">${reaction.en}</p>
+                        </div>
+                        <button class="button" onclick="closeEventModal()">Continue</button>
+                    </div>
+                `;
+
+                // Update expression to love
+                const expressionEl = document.getElementById(`${gameState.currentCharacter}-expression`);
+                if (expressionEl) {
+                    expressionEl.textContent = characterExpressions[gameState.currentCharacter].love;
+                    expressionEl.classList.add('love');
+                }
+
+                // Add confession message
+                setTimeout(() => {
+                    addMessage('character', reaction.jp, reaction.en, characterExpressions[gameState.currentCharacter].love);
+                    updateRelationship(15);
+                }, 500);
+            }, 2000);
+        }
+
+        // Close Event Modal
+        function closeEventModal() {
+            document.getElementById('eventModal').style.display = 'none';
+        }
+
+        // Check Milestone Events
+        function checkMilestoneEvents(oldScore, newScore) {
+            // Check if crossed into new tier
+            const milestones = [
+                { threshold: 50, title: 'Friendship Unlocked!', message: 'You are now friends! New conversation topics available.' },
+                { threshold: 70, title: 'Close Friend!', message: 'Your bond is growing stronger! Deeper conversations unlocked.' },
+                { threshold: 90, title: 'Soulmate Status!', message: 'You have reached the highest relationship level! All actions unlocked.' }
+            ];
+
+            milestones.forEach(milestone => {
+                if (oldScore < milestone.threshold && newScore >= milestone.threshold) {
+                    setTimeout(() => {
+                        const modal = document.getElementById('eventModal');
+                        modal.style.display = 'flex';
+                        modal.className = 'event-modal';
+                        
+                        modal.innerHTML = `
+                            <div class="event-content">
+                                <div class="event-icon">🎉</div>
+                                <div class="event-title">${milestone.title}</div>
+                                <div class="event-message">
+                                    <p>${milestone.message}</p>
+                                </div>
+                                <button class="button" onclick="closeEventModal()">Amazing!</button>
+                            </div>
+                        `;
+                    }, 1000);
+                }
+            });
+        }
+
+        // Update Timer
+        function updateTimer() {
+            setInterval(() => {
+                if (gameState.conversationStartTime) {
+                    const elapsed = Math.floor((Date.now() - gameState.conversationStartTime) / 60000);
+                    document.getElementById('conversationTime').textContent = elapsed + 'm';
+                }
+            }, 1000);
+        }
+
+        // Initialize
+        console.log('🎮 Nihongo Voice Game - Enhanced Version Initialized');
+        console.log('📝 Created by Sam Murmu for Gaijin Mode Application');
+        console.log('');
+        console.log('✨ NEW FEATURES:');
+        console.log('  1. Dynamic character expressions (6 emotional states)');
+        console.log('  2. Five-tier relationship system (Stranger → Soulmate)');
+        console.log('  3. Unlockable actions with requirements');
+        console.log('  4. Special confession events at 85%+');
+        console.log('  5. Low relationship penalties and warnings');
+        console.log('  6. Character-specific reactions and personalities');
+        console.log('');
+        console.log('🔧 TECHNICAL HIGHLIGHTS:');
+        console.log('  • State management with character memory');
+        console.log('  • Event-driven relationship updates');
+        console.log('  • Modular character system');
+        console.log('  • Real-time expression synchronization');
+        console.log('');
+        console.log('🎯 DEMONSTRATES:');
+        console.log('  • Social simulation algorithms');
+        console.log('  • Voice-first play loops');
+        console.log('  • Reward structures & unlockable content');
+        console.log('  • Character personality consistency');
+        console.log('');
+        console.log('💡 TESTING COMMANDS:');
+        console.log('  gameState.relationshipScore = 85  // Set relationship');
+        console.log('  updateRelationship(0)             // Refresh UI');
+        console.log('  performAction("confess")          // Trigger confession');
+        console.log('');
+    </script>
+</body>
+</html>
