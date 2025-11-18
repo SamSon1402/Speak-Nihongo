@@ -92,9 +92,7 @@ Every interaction matters. Compliments strengthen bonds. Rushing things too fast
 
 ---
 
-## Try It Live
 
-**🌐 [Play the Demo](#)** *([Add your GitHub Pages link here](https://samson1402.github.io/Speak-Nihongo/))*
 
 <br>
 
