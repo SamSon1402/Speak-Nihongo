@@ -94,7 +94,7 @@ Every interaction matters. Compliments strengthen bonds. Rushing things too fast
 
 ## Try It Live
 
-**🌐 [Play the Demo](#)** *(Add your GitHub Pages link here)*
+**🌐 [Play the Demo](#)** *([Add your GitHub Pages link here](https://samson1402.github.io/Speak-Nihongo/))*
 
 <br>
 
@@ -106,7 +106,7 @@ Every interaction matters. Compliments strengthen bonds. Rushing things too fast
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/speak-nihongo.git
+git clone https://github.com/SamSon1402/speak-nihongo.git
 cd speak-nihongo
 ```
 
@@ -249,7 +249,7 @@ speak-nihongo/
 
 ## Built By
 
-**Sam Murmu**  
+**Sameer M**  
 Computer Vision & ML Engineer
 
 Built as a demonstration project for voice-first AI applications and social simulation systems in language learning.
